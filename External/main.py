@@ -22,8 +22,18 @@ b_DeepSurv = []
 
 data = np.genfromtxt("data_external.csv", delimiter=',')
 kf = KFold(n_splits=5, random_state=1, shuffle=False)
+test_index_list = [np.arange(0, 120, 1),
+                    np.arange(120, 244, 1),
+                    np.arange(244, 352, 1),
+                    np.arange(352, 470, 1),
+                    np.arange(470, 592, 1)]
 
-for i, (train_index, test_index) in enumerate(kf.split(data)):
+for i in range(5):
+    test_index = test_index_list[i]
+    train_index = np.arange(0, 592, 1)
+    for j in test_index:
+        train_index = train_index[train_index != j]
+
     data_train = data[train_index]
     data_test = data[test_index]
     x_train, x_test = data[train_index, :-2].astype('float32'), data[test_index, :-2].astype('float32')
@@ -143,7 +153,7 @@ for i, (train_index, test_index) in enumerate(kf.split(data)):
     x_train_df, x_test_df = pd.DataFrame(x_train), pd.DataFrame(x_test)
     y_train_df = np.array(pd.DataFrame({'cens': e_train, 'time': t_train}).to_records(index=False))
     y_test_df = np.array(pd.DataFrame({'cens': e_test, 'time': t_test}).to_records(index=False))
-    rsf = RandomSurvivalForest(n_estimators=650,  random_state=111)
+    rsf = RandomSurvivalForest(n_estimators=700,  random_state=111)
     rsf.fit(x_train_df, y_train_df)
     surv_data = rsf.predict_survival_function(x_test_df)
     surv = pd.DataFrame(surv_data.T, rsf.event_times_)
